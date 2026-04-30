@@ -288,7 +288,7 @@ ctx.stroke();
 }
 }
 
-for(let k in pixels){
+for(let k in (window.fbPixels || pixels)){
 let[x,y]=k.split(",");
 ctx.fillStyle=pixels[k];
 ctx.fillRect(x*pixelSize,y*pixelSize,pixelSize,pixelSize);
