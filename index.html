@@ -357,7 +357,39 @@ startCooldown();
 },3000);
 
 loop();
-</script>
+  
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
+import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
+const firebaseConfig = {
+  apiKey: "AIzaSyDG7E4QVqlIX9DyJf7VaEgKYD4H4GL6BCg",
+  authDomain: "pixglobal-ca240.firebaseapp.com",
+  projectId: "pixglobal-ca240",
+  storageBucket: "pixglobal-ca240.appspot.com",
+  messagingSenderId: "97362633894",
+  appId: "1:97362633894:web:445ade72da24cf319cc067"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const ref = doc(db, "pixglobal", "world");
+
+window.fbPixels = {};
+
+/* realtime sync */
+onSnapshot(ref,(snap)=>{
+if(snap.exists()){
+window.fbPixels = snap.data().pixels || {};
+}
+});
+
+/* SAVE PIXEL */
+window.fbPlace = async (x,y,color)=>{
+window.fbPixels[x+","+y]=color;
+await setDoc(ref,{pixels:window.fbPixels});
+};
+</script>
+  
 </body>
 </html>
