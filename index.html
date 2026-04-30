@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>PixGlobal v6 FULL MULTIPLAYER</title>
+<title>PixGlobal v6 FULL STABLE</title>
 
 <style>
 body{
@@ -87,6 +87,7 @@ background:white;
 border:2px solid black;
 padding:10px;
 border-radius:10px;
+display:none;
 z-index:1000;
 }
 
@@ -152,7 +153,7 @@ background:#eee;
 
 <canvas id="canvas"></canvas>
 
-<div id="timer">GO</div>
+<div id="timer">30</div>
 
 <div id="palette">
 <input type="color" id="colorInput">
@@ -173,7 +174,6 @@ background:#eee;
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
 import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
-/* 🔥 FIREBASE CONFIG */
 const firebaseConfig = {
   apiKey: "AIzaSyDG7E4QVqlIX9DyJf7VaEgKYD4H4GL6BCg",
   authDomain: "pixglobal-ca240.firebaseapp.com",
@@ -185,25 +185,19 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-
 const ref = doc(db, "pixglobal", "world");
 
 let pixels = {};
 
-/* REALTIME SYNC */
-onSnapshot(ref, (snap) => {
-  if (snap.exists()) {
-    pixels = snap.data().pixels || {};
-  }
+onSnapshot(ref,(snap)=>{
+if(snap.exists()){
+pixels = snap.data().pixels || {};
+}
 });
 
-/* SAVE PIXEL */
-window.placePixel = async (x, y, color) => {
-  pixels[x + "," + y] = color;
-
-  await setDoc(ref, {
-    pixels: pixels
-  });
+window.placePixel = async (x,y,color)=>{
+pixels[x+","+y]=color;
+await setDoc(ref,{pixels});
 };
 </script>
 
@@ -221,13 +215,54 @@ const WORLD=2000;
 
 let selectedColor="#000";
 
+let scale=1;
+let targetScale=1;
+
+let camX=0,camY=0;
+let targetCamX=0,targetCamY=0;
+
+let canPlace=false;
+let time=30;
+let timer=document.getElementById("timer");
+let interval;
+
+function startCooldown(){
+time=30;
+canPlace=false;
+
+if(interval)clearInterval(interval);
+
+interval=setInterval(()=>{
+time--;
+timer.innerText=time;
+
+if(time<=0){
+canPlace=true;
+timer.innerText="GO";
+clearInterval(interval);
+}
+},1000);
+}
+
 document.getElementById("colorInput").oninput=(e)=>{
 selectedColor=e.target.value;
 };
 
+document.getElementById("paletteBtn").onclick=()=>{
+let p=document.getElementById("palette");
+p.style.display=p.style.display==="block"?"none":"block";
+};
+
+const menuBtn=document.getElementById("menuBtn");
+const menu=document.getElementById("menu");
+
+menuBtn.onclick=()=>{
+menu.style.display=menu.style.display==="block"?"none":"block";
+};
+
 function getMouse(e){
 const r=canvas.getBoundingClientRect();
-return {
+return{
 x:e.clientX-r.left,
 y:e.clientY-r.top
 };
@@ -238,6 +273,15 @@ ctx.setTransform(1,0,0,1,0,0);
 ctx.fillStyle="#d0d0d0";
 ctx.fillRect(0,0,canvas.width,canvas.height);
 
+ctx.setTransform(scale,0,0,scale,camX,camY);
+
+ctx.fillStyle="white";
+ctx.fillRect(0,0,WORLD*pixelSize,WORLD*pixelSize);
+
+ctx.strokeStyle="black";
+ctx.lineWidth=6;
+ctx.strokeRect(0,0,WORLD*pixelSize,WORLD*pixelSize);
+
 for(let k in pixels){
 let[x,y]=k.split(",");
 ctx.fillStyle=pixels[k];
@@ -246,25 +290,63 @@ ctx.fillRect(x*pixelSize,y*pixelSize,pixelSize,pixelSize);
 }
 
 canvas.addEventListener("click",(e)=>{
+if(!canPlace)return;
+
 const m=getMouse(e);
 
-let x=Math.floor(m.x/pixelSize);
-let y=Math.floor(m.y/pixelSize);
+let x=Math.floor((m.x-camX)/scale/pixelSize);
+let y=Math.floor((m.y-camY)/scale/pixelSize);
 
 placePixel(x,y,selectedColor);
+
+startCooldown();
 });
 
+canvas.addEventListener("wheel",(e)=>{
+e.preventDefault();
+targetScale+=e.deltaY*-0.001;
+targetScale=Math.min(Math.max(0.5,targetScale),6);
+});
+
+let dragging=false,lx,ly;
+
+canvas.addEventListener("mousedown",(e)=>{
+dragging=true;
+lx=e.clientX;
+ly=e.clientY;
+});
+
+canvas.addEventListener("mouseup",()=>dragging=false);
+
+canvas.addEventListener("mousemove",(e)=>{
+if(!dragging)return;
+
+targetCamX+=e.clientX-lx;
+targetCamY+=e.clientY-ly;
+
+lx=e.clientX;
+ly=e.clientY;
+});
+
+function update(){
+scale+=(targetScale-scale)*0.15;
+camX+=(targetCamX-camX)*0.12;
+camY+=(targetCamY-camY)*0.12;
+}
+
 function loop(){
+update();
 draw();
 requestAnimationFrame(loop);
 }
 
-loop();
-
 setTimeout(()=>{
 document.getElementById("loadingScreen").style.display="none";
 document.getElementById("bgOutside").style.display="none";
+startCooldown();
 },3000);
+
+loop();
 </script>
 
 </body>
