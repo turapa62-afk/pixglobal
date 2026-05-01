@@ -6,22 +6,33 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-app.use(express.static(__dirname));
+// public klasörünü servis et
+app.use(express.static("public"));
 
 let pixels = {};
 
 io.on("connection", (socket) => {
+  console.log("Bir oyuncu bağlandı:", socket.id);
 
+  // İlk girişte tüm pixelleri gönder
   socket.emit("init", pixels);
 
+  // Pixel koyma
   socket.on("placePixel", (data) => {
     pixels[`${data.x},${data.y}`] = data.color;
 
+    // Herkese gönder
     io.emit("pixelUpdate", data);
   });
 
+  socket.on("disconnect", () => {
+    console.log("Oyuncu çıktı:", socket.id);
+  });
 });
 
-server.listen(3000, () => {
-  console.log("SERVER RUNNING http://localhost:3000");
+// Render uyumlu port
+const PORT = process.env.PORT || 3000;
+
+server.listen(PORT, () => {
+  console.log("SERVER RUNNING on port " + PORT);
 });
