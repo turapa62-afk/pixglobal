@@ -350,11 +350,12 @@ draw();
 requestAnimationFrame(loop);
 }
 
-setTimeout(()=>{
-document.getElementById("loadingScreen").style.display="none";
-document.getElementById("bgOutside").style.display="none";
-startCooldown();
-},3000);
+socket.on("connect", () => {
+  document.getElementById("loadingScreen").style.display="none";
+  document.getElementById("bgOutside").style.display="none";
+
+  startCooldown();
+});
 
 loop();
 </script>
