@@ -197,16 +197,6 @@ socket.on("pixelUpdate",({x,y,color})=>{
 pixels[x+","+y]=color;
 });
 
-// 🔥 IMAGE MULTIPLAYER RENDER
-socket.on("showImage", (data) => {
-  const img = new Image();
-  img.src = data.image;
-
-  img.onload = () => {
-    ctx.drawImage(img, data.x, data.y, data.w, data.h);
-  };
-});
-
 let scale=1;
 let targetScale=1;
 
@@ -348,41 +338,6 @@ lx=e.clientX;
 ly=e.clientY;
 });
 
-// 🔥 DRAG & DROP IMAGE SYSTEM
-let lastX=0,lastY=0;
-
-canvas.addEventListener("mousemove",(e)=>{
-const r=canvas.getBoundingClientRect();
-
-lastX=(e.clientX-r.left-camX)/scale;
-lastY=(e.clientY-r.top-camY)/scale;
-});
-
-document.addEventListener("dragover",(e)=>e.preventDefault());
-
-document.addEventListener("drop",(e)=>{
-e.preventDefault();
-
-const file=e.dataTransfer.files[0];
-if(!file)return;
-
-const reader=new FileReader();
-
-reader.onload=()=>{
-
-socket.emit("sendImage",{
-image:reader.result,
-x:lastX,
-y:lastY,
-w:120,
-h:120
-});
-
-};
-
-reader.readAsDataURL(file);
-});
-
 function update(){
 scale+=(targetScale-scale)*0.15;
 camX+=(targetCamX-camX)*0.12;
@@ -395,11 +350,11 @@ draw();
 requestAnimationFrame(loop);
 }
 
-// cooldown
 socket.on("connect", () => {
-document.getElementById("loadingScreen").style.display="none";
-document.getElementById("bgOutside").style.display="none";
-startCooldown();
+  document.getElementById("loadingScreen").style.display="none";
+  document.getElementById("bgOutside").style.display="none";
+
+  startCooldown();
 });
 
 loop();
