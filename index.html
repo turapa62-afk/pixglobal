@@ -173,7 +173,7 @@ background:#eee;
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 
 <script>
-const socket = io();
+const socket = io(window.location.origin);
 
 const canvas=document.getElementById("canvas");
 const ctx=canvas.getContext("2d");
