@@ -7,6 +7,8 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
+app.use(express.json());
+
 // direkt index.html ver
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
@@ -19,9 +21,15 @@ io.on("connection", (socket) => {
 
   socket.emit("init", pixels);
 
+  // 🟢 PIXEL SİSTEMİ (AYNI)
   socket.on("placePixel", (data) => {
     pixels[`${data.x},${data.y}`] = data.color;
     io.emit("pixelUpdate", data);
+  });
+
+  // 🟣 IMAGE SİSTEMİ (YENİ EKLENDİ)
+  socket.on("sendImage", (data) => {
+    io.emit("showImage", data);
   });
 
   socket.on("disconnect", () => {
