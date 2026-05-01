@@ -209,7 +209,7 @@ canvas.height=window.innerHeight;
 });
 
 let canPlace=false;
-let time=30;
+let time=3;
 let timer=document.getElementById("timer");
 let interval;
 
@@ -225,7 +225,7 @@ timer.innerText=time;
 
 if(time<=0){
 canPlace=true;
-timer.innerText="GO";
+timer.innerText="Go Pixel!";
 clearInterval(interval);
 }
 },1000);
