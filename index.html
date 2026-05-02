@@ -153,7 +153,7 @@ background:#eee;
 
 <canvas id="canvas"></canvas>
 
-<div id="timer">0</div>
+
 
 <div id="palette">
 <input type="color" id="colorInput">
@@ -209,7 +209,7 @@ canvas.height=window.innerHeight;
 });
 
 let canPlace=false;
-let time=0;
+
 let timer=document.getElementById("timer");
 let interval;
 
@@ -223,7 +223,7 @@ interval=setInterval(()=>{
 time--;
 timer.innerText=time;
 
-if(time<=0){
+
 canPlace=true;
 timer.innerText="Go Pixel!";
 clearInterval(interval);
