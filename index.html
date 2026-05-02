@@ -138,6 +138,19 @@ cursor:pointer;
 .menuItem:hover{
 background:#eee;
 }
+
+/* MINIMAP */
+#minimap{
+position:fixed;
+top:15px;
+right:15px;
+width:150px;
+height:150px;
+background:rgba(0,0,0,0.6);
+border:2px solid white;
+border-radius:10px;
+z-index:3000;
+}
 </style>
 </head>
 
@@ -152,6 +165,7 @@ background:#eee;
 </div>
 
 <canvas id="canvas"></canvas>
+<canvas id="minimap"></canvas>
 
 <div id="timer">1</div>
 
@@ -178,8 +192,14 @@ const socket = io(window.location.origin);
 const canvas=document.getElementById("canvas");
 const ctx=canvas.getContext("2d");
 
+const minimap=document.getElementById("minimap");
+const mtx=minimap.getContext("2d");
+
 canvas.width=window.innerWidth;
 canvas.height=window.innerHeight;
+
+minimap.width=150;
+minimap.height=150;
 
 ctx.imageSmoothingEnabled=false;
 
@@ -293,6 +313,42 @@ let[x,y]=k.split(",");
 ctx.fillStyle=pixels[k];
 ctx.fillRect(x*pixelSize,y*pixelSize,pixelSize,pixelSize);
 }
+
+drawMinimap();
+}
+
+function drawMinimap(){
+mtx.clearRect(0,0,minimap.width,minimap.height);
+
+const scaleMini = minimap.width / (WORLD*pixelSize);
+
+// arka plan
+mtx.fillStyle="#111";
+mtx.fillRect(0,0,minimap.width,minimap.height);
+
+// çizilmiş pixeller (hafif)
+for(let k in pixels){
+let[x,y]=k.split(",");
+mtx.fillStyle=pixels[k];
+mtx.fillRect(x*pixelSize*scaleMini,y*pixelSize*scaleMini,2,2);
+}
+
+// kamera alanı (senin gördüğün yer)
+mtx.strokeStyle="red";
+mtx.lineWidth=1;
+
+const viewW = canvas.width/scale;
+const viewH = canvas.height/scale;
+
+const viewX = -camX/scale;
+const viewY = -camY/scale;
+
+mtx.strokeRect(
+viewX*scaleMini,
+viewY*scaleMini,
+viewW*scaleMini,
+viewH*scaleMini
+);
 }
 
 canvas.addEventListener("click",(e)=>{
